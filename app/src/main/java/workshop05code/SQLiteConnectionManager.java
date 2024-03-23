@@ -11,10 +11,9 @@ import java.sql.Statement;
 
 //Import for logging exercise
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class SQLiteConnectionManager {
     // Start code logging exercise
@@ -52,7 +51,7 @@ public class SQLiteConnectionManager {
      */
     public SQLiteConnectionManager(String filename) {
         databaseURL = "jdbc:sqlite:sqlite/" + filename;
-
+        logger.log(Level.INFO, "databaseURL=" + databaseURL);
     }
 
     /**
@@ -67,9 +66,12 @@ public class SQLiteConnectionManager {
                 DatabaseMetaData meta = conn.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
                 System.out.println("A new database has been created.");
+                logger.log(Level.INFO, "Driver name: " + meta.getDriverName());
+                logger.log(Level.INFO, "A new database has been created.");
 
             }
         } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Unspecified error: " + e.toString());
             System.out.println(e.getMessage());
         }
     }
@@ -82,13 +84,18 @@ public class SQLiteConnectionManager {
      */
     public boolean checkIfConnectionDefined() {
         if (databaseURL.equals("")) {
+            logger.log(Level.WARNING, "Connection undefined. Empty databaseURL.");
             return false;
         } else {
             try (Connection conn = DriverManager.getConnection(databaseURL)) {
                 if (conn != null) {
+                    logger.log(Level.INFO, "Database connected. databaseURL=" + databaseURL);
                     return true;
+                } else {
+                    logger.log(Level.WARNING, "Connection undefined.");
                 }
             } catch (SQLException e) {
+                logger.log(Level.SEVERE, "Unspecified error: " + e.toString());
                 System.out.println(e.getMessage());
                 return false;
             }
@@ -103,17 +110,24 @@ public class SQLiteConnectionManager {
      */
     public boolean createWordleTables() {
         if (databaseURL.equals("")) {
+            logger.log(Level.WARNING, "Connection undefined. Empty databaseURL.");
             return false;
         } else {
             try (Connection conn = DriverManager.getConnection(databaseURL);
                     Statement stmt = conn.createStatement()) {
+                logger.log(Level.INFO, "Database connected. databaseURL=" + databaseURL);
                 stmt.execute(WORDLE_DROP_TABLE_STRING);
+                logger.log(Level.INFO, "Execute WORDLE_DROP_TABLE_STRING.");
                 stmt.execute(WORDLE_CREATE_STRING);
+                logger.log(Level.INFO, "Execute WORDLE_CREATE_STRING.");
                 stmt.execute(VALID_WORDS_DROP_TABLE_STRING);
+                logger.log(Level.INFO, "Execute VALID_WORDS_DROP_TABLE_STRING.");
                 stmt.execute(VALID_WORDS_CREATE_STRING);
+                logger.log(Level.INFO, "Execute VALID_WORDS_CREATE_STRING.");
                 return true;
 
             } catch (SQLException e) {
+                logger.log(Level.SEVERE, "Unspecified error: " + e.toString());
                 System.out.println(e.getMessage());
                 return false;
             }
@@ -132,10 +146,13 @@ public class SQLiteConnectionManager {
 
         try (Connection conn = DriverManager.getConnection(databaseURL);
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            logger.log(Level.INFO, "Database connected. databaseURL=" + databaseURL);
             pstmt.setInt(1, id);
             pstmt.setString(2, word);
             pstmt.executeUpdate();
+            logger.log(Level.INFO, "Execute insertion.");
         } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Unspecified error: " + e.toString());
             System.out.println(e.getMessage());
         }
 
@@ -152,8 +169,10 @@ public class SQLiteConnectionManager {
 
         try (Connection conn = DriverManager.getConnection(databaseURL);
                 PreparedStatement stmt = conn.prepareStatement(sql);) {
+            logger.log(Level.INFO, "Database connected. databaseURL=" + databaseURL);
             stmt.setString(1, guess);
             ResultSet resultRows = stmt.executeQuery();
+            logger.log(Level.INFO, "Execute word check.");
             if (resultRows.next()) {
                 int result = resultRows.getInt("total");
                 return (result >= 1);
@@ -162,6 +181,7 @@ public class SQLiteConnectionManager {
             return false;
 
         } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Unspecified error: " + e.toString());
             System.out.println(e.getMessage());
             return false;
         }
